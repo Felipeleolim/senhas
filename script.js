@@ -7,6 +7,7 @@ let currentFileName = 'gerenciador_ti.xlsx';
 let isEditingIndex = null;
 let editingType = null;
 let selectedUsers = [];
+let companyLogo = null;
 
 // Elementos do DOM
 const fileInput = document.getElementById('file-input');
@@ -41,6 +42,9 @@ function setupEventListeners() {
     document.getElementById('toggle-password').addEventListener('click', togglePasswordVisibility);
     document.getElementById('password-input').addEventListener('input', () => 
         updatePasswordStrength(document.getElementById('password-input').value));
+    
+    // Upload de logo
+    document.getElementById('company-logo').addEventListener('change', handleLogoUpload);
     
     // Modal de senha
     document.getElementById('use-password').addEventListener('click', useGeneratedPassword);
@@ -109,7 +113,7 @@ function createNewWorkbook() {
     workbook = XLSX.utils.book_new();
     
     // Criar abas vazias
-    const companyWorksheet = XLSX.utils.aoa_to_sheet([["Nome da Empresa", ""], ["Endereço", ""], ["Contato", ""]]);
+    const companyWorksheet = XLSX.utils.aoa_to_sheet([["Nome da Empresa", ""], ["Endereço", ""], ["Contato", ""], ["Logo", ""]]);
     const credentialsWorksheet = XLSX.utils.aoa_to_sheet([["Serviço", "URL", "Usuário", "Senha", "MFA", "Notas", "Data Atualização"]]);
     const notebooksWorksheet = XLSX.utils.aoa_to_sheet([["Usuário", "Marca/Modelo", "Número Série", "Sistema Operacional", "Conexões", "Data Cadastro"]]);
     const printersWorksheet = XLSX.utils.aoa_to_sheet([["Modelo", "Número Série", "Localização", "Tipo Conexão", "Usuários", "Data Cadastro"]]);
@@ -127,12 +131,16 @@ function createNewWorkbook() {
     isEditingIndex = null;
     editingType = null;
     currentFileName = 'gerenciador_ti.xlsx';
+    companyLogo = null;
     
     // Limpar formulários
     document.getElementById('company-name').value = '';
     document.getElementById('company-address').value = '';
     document.getElementById('company-contact').value = '';
     document.getElementById('company-logo').value = '';
+    const logoPreview = document.getElementById('logo-preview');
+    logoPreview.src = '#';
+    logoPreview.style.display = 'none';
     clearCredentialForm();
     clearNotebookForm();
     clearPrinterForm();
@@ -164,6 +172,14 @@ async function handleFileLoad() {
                 document.getElementById('company-name').value = companyData[0][1] || '';
                 document.getElementById('company-address').value = companyData[1][1] || '';
                 document.getElementById('company-contact').value = companyData[2][1] || '';
+                
+                // Carregar logo se existir
+                if (companyData[3] && companyData[3][1]) {
+                    companyLogo = companyData[3][1];
+                    const logoPreview = document.getElementById('logo-preview');
+                    logoPreview.src = companyLogo;
+                    logoPreview.style.display = 'block';
+                }
             }
         }
         
@@ -198,6 +214,7 @@ function handleSave() {
             ["Nome da Empresa", document.getElementById('company-name').value],
             ["Endereço", document.getElementById('company-address').value],
             ["Contato", document.getElementById('company-contact').value],
+            ["Logo", companyLogo || ""],
             ["", ""],
             ["Data Exportação", new Date().toLocaleString()]
         ];
@@ -313,6 +330,21 @@ function loadSheetData(sheetName, type) {
     } else if (type === 'printers') {
         renderPrintersTable();
     }
+}
+
+// Funções para manipulação do logo da empresa
+function handleLogoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        companyLogo = event.target.result;
+        const logoPreview = document.getElementById('logo-preview');
+        logoPreview.src = companyLogo;
+        logoPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
 }
 
 // Funções para Credenciais
@@ -567,11 +599,6 @@ function getAllUsers() {
             users.add(notebook.user.trim());
         }
     });
-    
-    // Adicione esta parte se tiver desktops também:
-    // desktops.forEach(desktop => {
-    //     if (desktop.user) users.add(desktop.user.trim());
-    // });
     
     return Array.from(users).sort();
 }
@@ -911,11 +938,8 @@ function readFileAsArrayBuffer(file) {
 }
 
 function updateUI() {
-    document.getElementById('save-btn').disabled = !workbook || (
-        credentials.length === 0 && 
-        notebooks.length === 0 && 
-        printers.length === 0
-    );
+    const hasCompanyInfo = document.getElementById('company-name').value.trim() !== '';
+    document.getElementById('save-btn').enabled = !workbook || !hasCompanyInfo;
 }
 
 function showAlert(message, type = 'info') {
