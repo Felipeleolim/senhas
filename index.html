@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Credenciais</title>
+    <title>Gerenciador de TI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1><i class="fas fa-key"></i> Gerenciador de Credenciais</h1>
+            <h1><i class="fas fa-key"></i> Gerenciador de TI</h1>
             <div class="file-actions">
                 <button id="new-btn" class="btn primary">
                     <i class="fas fa-file"></i> Novo
@@ -25,76 +25,248 @@
             </div>
         </header>
 
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="company">Empresa</button>
+            <button class="tab-btn" data-tab="credentials">Credenciais</button>
+            <button class="tab-btn" data-tab="equipment">Equipamentos</button>
+        </div>
+
         <div class="app-content">
-            <div class="credential-form" id="credential-form">
-                <h2><i class="fas fa-plus"></i> Adicionar Credencial</h2>
-                <div class="form-group">
-                    <label for="service-input"><i class="fas fa-tag"></i> Serviço*</label>
-                    <input type="text" id="service-input" class="form-input" placeholder="Ex: Gmail, Netflix" required>
-                </div>
-                <div class="form-group">
-                    <label for="url-input"><i class="fas fa-link"></i> URL*</label>
-                    <input type="url" id="url-input" class="form-input" placeholder="https://exemplo.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="user-input"><i class="fas fa-user"></i> Usuário/E-mail*</label>
-                    <input type="text" id="user-input" class="form-input" placeholder="seu@email.com" required>
-                </div>
-                <div class="form-group password-group">
-                    <label for="password-input"><i class="fas fa-lock"></i> Senha*</label>
-                    <div class="password-input-container">
-                        <input type="password" id="password-input" class="form-input" placeholder="Digite ou gere uma senha" required>
-                        <button id="toggle-password" class="password-toggle">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button id="generate-password-btn" class="btn password-generator">
-                            <i class="fas fa-key"></i> Gerar
-                        </button>
+            <!-- Aba Empresa -->
+            <div id="company-tab" class="tab-content active">
+                <div class="company-form">
+                    <h2><i class="fas fa-building"></i> Informações da Empresa</h2>
+                    <div class="form-group">
+                        <label for="company-name"><i class="fas fa-signature"></i> Nome da Empresa*</label>
+                        <input type="text" id="company-name" class="form-input" placeholder="Nome da empresa" required>
                     </div>
-                    <div class="password-strength">
-                        <div class="strength-meter">
-                            <div class="strength-bar" id="strength-bar"></div>
-                        </div>
-                        <span id="strength-text">Força: </span>
+                    <div class="form-group">
+                        <label for="company-logo"><i class="fas fa-image"></i> Logo da Empresa</label>
+                        <input type="file" id="company-logo" class="form-input" accept="image/*">
                     </div>
-                </div>
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="mfa-checkbox" class="mfa-checkbox">
-                    <label for="mfa-checkbox"><i class="fas fa-shield-alt"></i> Usar Autenticação em Dois Fatores (MFA)</label>
-                </div>
-                <div class="form-group">
-                    <label for="notes-input"><i class="fas fa-sticky-note"></i> Notas</label>
-                    <textarea id="notes-input" class="form-input" rows="2" placeholder="Informações adicionais"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button id="save-credential-btn" class="btn success">
-                        <i class="fas fa-check"></i> Salvar Credencial
-                    </button>
-                    <button id="clear-form-btn" class="btn secondary">
-                        <i class="fas fa-times"></i> Limpar
-                    </button>
+                    <div class="form-group">
+                        <label for="company-address"><i class="fas fa-map-marker-alt"></i> Endereço</label>
+                        <input type="text" id="company-address" class="form-input" placeholder="Endereço completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="company-contact"><i class="fas fa-phone"></i> Contato Principal</label>
+                        <input type="text" id="company-contact" class="form-input" placeholder="Telefone/Email">
+                    </div>
                 </div>
             </div>
 
-            <div class="credentials-table-container">
-                <h2><i class="fas fa-list"></i> Credenciais Salvas</h2>
-                <div class="table-scroll">
-                    <table id="credentials-table">
-                        <thead>
-                            <tr>
-                                <th>Serviço</th>
-                                <th>URL</th>
-                                <th>Usuário</th>
-                                <th>Senha</th>
-                                <th>MFA</th>
-                                <th>Notas</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="credentials-list">
-                            <!-- Credenciais serão inseridas aqui via JavaScript -->
-                        </tbody>
-                    </table>
+            <!-- Aba Credenciais -->
+            <div id="credentials-tab" class="tab-content">
+                <div class="credential-form" id="credential-form">
+                    <h2><i class="fas fa-plus"></i> Adicionar Credencial</h2>
+                    <div class="form-group">
+                        <label for="service-input"><i class="fas fa-tag"></i> Serviço*</label>
+                        <input type="text" id="service-input" class="form-input" placeholder="Ex: Gmail, Netflix" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="url-input"><i class="fas fa-link"></i> URL*</label>
+                        <input type="url" id="url-input" class="form-input" placeholder="https://exemplo.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-input"><i class="fas fa-user"></i> Usuário/E-mail*</label>
+                        <input type="text" id="user-input" class="form-input" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="form-group password-group">
+                        <label for="password-input"><i class="fas fa-lock"></i> Senha*</label>
+                        <div class="password-input-container">
+                            <input type="password" id="password-input" class="form-input" placeholder="Digite ou gere uma senha" required>
+                            <button id="toggle-password" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button id="generate-password-btn" class="btn password-generator">
+                                <i class="fas fa-key"></i> Gerar
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-meter">
+                                <div class="strength-bar" id="strength-bar"></div>
+                            </div>
+                            <span id="strength-text">Força: </span>
+                        </div>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="mfa-checkbox" class="mfa-checkbox">
+                        <label for="mfa-checkbox"><i class="fas fa-shield-alt"></i> Usar Autenticação em Dois Fatores (MFA)</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes-input"><i class="fas fa-sticky-note"></i> Notas</label>
+                        <textarea id="notes-input" class="form-input" rows="2" placeholder="Informações adicionais"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button id="save-credential-btn" class="btn success">
+                            <i class="fas fa-check"></i> Salvar Credencial
+                        </button>
+                        <button id="clear-form-btn" class="btn secondary">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="credentials-table-container">
+                    <h2><i class="fas fa-list"></i> Credenciais Salvas</h2>
+                    <div class="table-scroll">
+                        <table id="credentials-table">
+                            <thead>
+                                <tr>
+                                    <th>Serviço</th>
+                                    <th>URL</th>
+                                    <th>Usuário</th>
+                                    <th>Senha</th>
+                                    <th>MFA</th>
+                                    <th>Notas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="credentials-list">
+                                <!-- Credenciais serão inseridas aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Equipamentos -->
+            <div id="equipment-tab" class="tab-content">
+                <div class="equipment-tabs">
+                    <button class="subtab-btn active" data-subtab="notebooks">Notebooks</button>
+                    <button class="subtab-btn" data-subtab="printers">Impressoras</button>
+                </div>
+
+                <!-- Sub-aba Notebooks -->
+                <div id="notebooks-subtab" class="subtab-content active">
+                    <div class="notebook-form">
+                        <h3><i class="fas fa-laptop"></i> Adicionar Notebook</h3>
+                        <div class="form-group">
+                            <label for="notebook-user"><i class="fas fa-user"></i> Usuário Responsável*</label>
+                            <input type="text" id="notebook-user" class="form-input" placeholder="Nome do responsável" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="notebook-brand"><i class="fas fa-laptop-code"></i> Marca/Modelo*</label>
+                            <input type="text" id="notebook-brand" class="form-input" placeholder="Ex: Dell Latitude 5420" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="notebook-serial"><i class="fas fa-barcode"></i> Número de Série</label>
+                            <input type="text" id="notebook-serial" class="form-input" placeholder="Número de série">
+                        </div>
+                        <div class="form-group">
+                            <label for="notebook-os"><i class="fas fa-window-maximize"></i> Sistema Operacional*</label>
+                            <select id="notebook-os" class="form-input" required>
+                                <option value="">Selecione...</option>
+                                <option value="Windows 10">Windows 10</option>
+                                <option value="Windows 11">Windows 11</option>
+                                <option value="macOS">macOS</option>
+                                <option value="Linux">Linux</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-network-wired"></i> Tipo de Conexão*</label>
+                            <div class="connection-options">
+                                <label><input type="checkbox" name="notebook-connection" value="Wi-Fi"> Wi-Fi</label>
+                                <label><input type="checkbox" name="notebook-connection" value="Ethernet"> Cabo Ethernet</label>
+                                <label><input type="checkbox" name="notebook-connection" value="Dock"> Dock Station</label>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="save-notebook" class="btn success">
+                                <i class="fas fa-check"></i> Salvar Notebook
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="notebooks-table-container">
+                        <h3><i class="fas fa-list"></i> Notebooks Cadastrados</h3>
+                        <div class="table-scroll">
+                            <table id="notebooks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th>Marca/Modelo</th>
+                                        <th>Série</th>
+                                        <th>Sistema</th>
+                                        <th>Conexões</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="notebooks-list">
+                                    <!-- Notebooks serão inseridos aqui via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-aba Impressoras -->
+                <div id="printers-subtab" class="subtab-content">
+                    <div class="printer-form">
+                        <h3><i class="fas fa-print"></i> Adicionar Impressora</h3>
+                        <div class="form-group">
+                            <label for="printer-name"><i class="fas fa-signature"></i> Nome/Modelo*</label>
+                            <input type="text" id="printer-name" class="form-input" placeholder="Ex: HP LaserJet Pro M404" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="printer-serial"><i class="fas fa-barcode"></i> Número de Série</label>
+                            <input type="text" id="printer-serial" class="form-input" placeholder="Número de série">
+                        </div>
+                        <div class="form-group">
+                            <label for="printer-ip"><i class="fas fa-network-wired"></i> IP/MAC</label>
+                            <input type="text" id="printer-ip" class="form-input" placeholder="Endereço IP ou MAC">
+                        </div>
+                        <div class="form-group">
+                            <label for="printer-location"><i class="fas fa-map-marker-alt"></i> Setor/Localização*</label>
+                            <input type="text" id="printer-location" class="form-input" placeholder="Ex: Financeiro - Sala 12" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-wifi"></i> Tipo de Conexão*</label>
+                            <div class="connection-options">
+                                <label><input type="radio" name="printer-connection" value="Wi-Fi" checked> Wi-Fi</label>
+                                <label><input type="radio" name="printer-connection" value="Wi-Fi Direct"> Wi-Fi Direct</label>
+                                <label><input type="radio" name="printer-connection" value="Ethernet"> Cabo Ethernet</label>
+                                <label><input type="radio" name="printer-connection" value="USB"> USB</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="printer-users"><i class="fas fa-users"></i> Usuários com Acesso</label>
+                            <div class="tags-input-container">
+                                <div class="tags-input" id="printer-users-tags">
+                                    <!-- Tags serão adicionadas aqui -->
+                                </div>
+                                <input type="text" id="printer-users-input" class="form-input tags-input-field" 
+                                       placeholder="Digite o nome do usuário ou selecione abaixo">
+                                <div class="user-suggestions" id="user-suggestions"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="save-printer" class="btn success">
+                                <i class="fas fa-check"></i> Salvar Impressora
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="printers-table-container">
+                        <h3><i class="fas fa-list"></i> Impressoras Cadastradas</h3>
+                        <div class="table-scroll">
+                            <table id="printers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Modelo</th>
+                                        <th>Série</th>
+                                        <th>Localização</th>
+                                        <th>Conexão</th>
+                                        <th>Usuários</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="printers-list">
+                                    <!-- Impressoras serão inseridas aqui via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
