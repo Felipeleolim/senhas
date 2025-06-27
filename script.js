@@ -9,14 +9,14 @@ let editingType = null;
 let selectedUsers = [];
 let companyDataSaved = false;
 let companyLogo = null;
+let currentNotebookIndex = null;
 
 // Elementos do DOM
 const fileInput = document.getElementById('file-input');
 const saveBtn = document.getElementById('save-btn');
 const newBtn = document.getElementById('new-btn');
 const credentialsList = document.getElementById('credentials-list');
-const notebooksList = document.getElementById('notebooks-list');
-const printersList = document.getElementById('printers-list');
+const equipmentGrid = document.getElementById('equipment-grid');
 const tabBtns = document.querySelectorAll('.tab-btn');
 const subtabBtns = document.querySelectorAll('.subtab-btn');
 const usersInput = document.getElementById('printer-users-input');
@@ -26,6 +26,7 @@ const userSuggestions = document.getElementById('user-suggestions');
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     updateUI();
+    renderEquipmentGrid();
 });
 
 // Configuração dos event listeners
@@ -63,19 +64,35 @@ function setupEventListeners() {
     
     // Notebooks
     document.getElementById('save-notebook').addEventListener('click', saveNotebook);
+    document.getElementById('cancel-notebook').addEventListener('click', cancelEquipmentForm);
+    document.getElementById('notebook-image').addEventListener('change', handleNotebookImageUpload);
+    
+    // Impressoras
+    document.getElementById('save-printer').addEventListener('click', savePrinter);
+    document.getElementById('cancel-printer').addEventListener('click', cancelEquipmentForm);
+    document.getElementById('printer-image').addEventListener('change', handlePrinterImageUpload);
     
     // Impressoras - Sistema de tags de usuários
     usersInput.addEventListener('input', handleUserInput);
     usersInput.addEventListener('keydown', handleUserKeyDown);
     usersInput.addEventListener('focus', showUserSuggestions);
+    
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.tags-input-container')) {
             userSuggestions.style.display = 'none';
         }
     });
     
-    // Impressoras
-    document.getElementById('save-printer').addEventListener('click', savePrinter);
+    // Equipamentos
+    document.getElementById('add-equipment-btn').addEventListener('click', showEquipmentForm);
+    
+    // Notebook modal
+    document.getElementById('add-note-btn').addEventListener('click', toggleNoteField);
+    document.getElementById('save-note-btn').addEventListener('click', saveNote);
+    document.getElementById('cancel-note-btn').addEventListener('click', toggleNoteField);
+    document.getElementById('close-notebook-modal').addEventListener('click', () => {
+        document.getElementById('notebook-modal').style.display = 'none';
+    });
 }
 
 // Funções para navegação por abas
@@ -137,6 +154,33 @@ function handleLogoUpload(e) {
     reader.readAsDataURL(file);
 }
 
+// Funções para manipulação de imagens
+function handleNotebookImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const notebookPreview = document.getElementById('notebook-preview');
+        notebookPreview.src = event.target.result;
+        notebookPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function handlePrinterImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const printerPreview = document.getElementById('printer-preview');
+        printerPreview.src = event.target.result;
+        printerPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
 // Funções do Workbook
 function createNewWorkbook() {
     if ((credentials.length > 0 || notebooks.length > 0 || printers.length > 0) && 
@@ -148,8 +192,8 @@ function createNewWorkbook() {
     
     const companyWorksheet = XLSX.utils.aoa_to_sheet([["Nome da Empresa", ""], ["Endereço", ""], ["Contato", ""], ["Logo", ""]]);
     const credentialsWorksheet = XLSX.utils.aoa_to_sheet([["Serviço", "URL", "Usuário", "Senha", "MFA", "Notas", "Data Atualização"]]);
-    const notebooksWorksheet = XLSX.utils.aoa_to_sheet([["Usuário", "Marca/Modelo", "Número Série", "Sistema Operacional", "Conexões", "Data Cadastro"]]);
-    const printersWorksheet = XLSX.utils.aoa_to_sheet([["Modelo", "Número Série", "Localização", "Tipo Conexão", "Usuários", "Data Cadastro"]]);
+    const notebooksWorksheet = XLSX.utils.aoa_to_sheet([["Usuário", "Marca/Modelo", "Número Série", "Sistema Operacional", "Conexões", "Notas", "Imagem", "Data Cadastro"]]);
+    const printersWorksheet = XLSX.utils.aoa_to_sheet([["Modelo", "Número Série", "Localização", "Tipo Conexão", "Usuários", "Imagem", "Data Cadastro"]]);
     
     XLSX.utils.book_append_sheet(workbook, companyWorksheet, "Empresa");
     XLSX.utils.book_append_sheet(workbook, credentialsWorksheet, "Credenciais");
@@ -165,6 +209,7 @@ function createNewWorkbook() {
     companyLogo = null;
     companyDataSaved = false;
     currentFileName = 'gerenciador_ti.xlsx';
+    currentNotebookIndex = null;
     
     document.getElementById('company-name').value = '';
     document.getElementById('company-address').value = '';
@@ -182,8 +227,7 @@ function createNewWorkbook() {
     clearPrinterForm();
     
     renderCredentialsTable();
-    renderNotebooksTable();
-    renderPrintersTable();
+    renderEquipmentGrid();
     updateUI();
     
     showAlert('Nova planilha criada!', 'success');
@@ -242,6 +286,7 @@ async function handleFileLoad() {
         }
         
         updateUI();
+        renderEquipmentGrid();
         showAlert('Planilha carregada com sucesso!', 'success');
     } catch (error) {
         console.error("Erro ao carregar arquivo:", error);
@@ -297,14 +342,20 @@ function handleSave() {
             delete workbook.Sheets["Notebooks"];
         }
         
-        const notebooksData = [["Usuário", "Marca/Modelo", "Número Série", "Sistema Operacional", "Conexões", "Data Cadastro"]];
+        const notebooksData = [["Usuário", "Marca/Modelo", "Número Série", "Sistema Operacional", "Conexões", "Notas", "Imagem", "Data Cadastro"]];
         notebooks.forEach(note => {
+            const notesText = note.notes && note.notes.length > 0 ? 
+                note.notes.map(n => `${n.date}: ${n.text}`).join('\n\n') : 
+                '';
+            
             notebooksData.push([
                 note.user,
                 note.brand,
                 note.serial,
                 note.os,
                 note.connections,
+                notesText,
+                note.image ? "Sim" : "Não",
                 note.date
             ]);
         });
@@ -316,7 +367,7 @@ function handleSave() {
             delete workbook.Sheets["Impressoras"];
         }
         
-        const printersData = [["Modelo", "Número Série", "Localização", "Tipo Conexão", "Usuários", "Data Cadastro"]];
+        const printersData = [["Modelo", "Número Série", "Localização", "Tipo Conexão", "Usuários", "Imagem", "Data Cadastro"]];
         printers.forEach(printer => {
             printersData.push([
                 printer.name,
@@ -324,6 +375,7 @@ function handleSave() {
                 printer.location,
                 printer.connection,
                 printer.users,
+                printer.image ? "Sim" : "Não",
                 printer.date
             ]);
         });
@@ -337,14 +389,31 @@ function handleSave() {
     }
 }
 
-// Funções para notebooks (CORRIGIDAS)
+// Funções para equipamentos
+function showEquipmentForm() {
+    document.getElementById('equipment-form-container').style.display = 'block';
+    document.getElementById('add-equipment-btn').style.display = 'none';
+    document.querySelector('.subtab-btn[data-subtab="notebooks"]').click();
+    clearNotebookForm();
+    clearPrinterForm();
+}
+
+function cancelEquipmentForm() {
+    document.getElementById('equipment-form-container').style.display = 'none';
+    document.getElementById('add-equipment-btn').style.display = 'flex';
+    isEditingIndex = null;
+    editingType = null;
+}
+
+// Funções para notebooks
 function saveNotebook() {
     const user = document.getElementById('notebook-user').value.trim();
     const brand = document.getElementById('notebook-brand').value.trim();
     const serial = document.getElementById('notebook-serial').value.trim();
     const os = document.getElementById('notebook-os').value.trim();
+    const notes = document.getElementById('notebook-notes').value.trim();
+    const imageInput = document.getElementById('notebook-image');
     
-    // Capturar checkboxes selecionados
     const connectionCheckboxes = document.querySelectorAll('input[name="notebook-connection"]:checked');
     const connections = Array.from(connectionCheckboxes).map(cb => cb.value).join(', ');
     
@@ -353,12 +422,30 @@ function saveNotebook() {
         return;
     }
     
+    let image = null;
+    if (imageInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            image = e.target.result;
+            saveNotebookData(user, brand, serial, os, connections, notes, image);
+        };
+        reader.readAsDataURL(imageInput.files[0]);
+    } else {
+        saveNotebookData(user, brand, serial, os, connections, notes, null);
+    }
+}
+
+function saveNotebookData(user, brand, serial, os, connections, notes, image) {
+    const existingNotebook = isEditingIndex !== null && editingType === 'notebook' ? notebooks[isEditingIndex] : null;
+    
     const notebook = {
         user,
         brand,
         serial,
         os,
         connections,
+        notes: existingNotebook && existingNotebook.notes ? existingNotebook.notes : (notes ? [{ text: notes, date: new Date().toLocaleString() }] : []),
+        image,
         date: new Date().toLocaleDateString()
     };
     
@@ -370,19 +457,19 @@ function saveNotebook() {
         showAlert('Notebook adicionado com sucesso!', 'success');
     }
     
-    renderNotebooksTable();
-    clearNotebookForm();
+    renderEquipmentGrid();
+    cancelEquipmentForm();
     updateUI();
 }
 
-// Funções para impressoras (CORRIGIDAS)
+// Funções para impressoras
 function savePrinter() {
     const name = document.getElementById('printer-name').value.trim();
     const serial = document.getElementById('printer-serial').value.trim();
     const location = document.getElementById('printer-location').value.trim();
     const ip = document.getElementById('printer-ip').value.trim();
+    const imageInput = document.getElementById('printer-image');
     
-    // Capturar radio button selecionado
     const connection = document.querySelector('input[name="printer-connection"]:checked').value;
     const users = selectedUsers.join(', ');
     
@@ -391,6 +478,20 @@ function savePrinter() {
         return;
     }
     
+    let image = null;
+    if (imageInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            image = e.target.result;
+            savePrinterData(name, serial, ip, location, connection, users, image);
+        };
+        reader.readAsDataURL(imageInput.files[0]);
+    } else {
+        savePrinterData(name, serial, ip, location, connection, users, null);
+    }
+}
+
+function savePrinterData(name, serial, ip, location, connection, users, image) {
     const printer = {
         name,
         serial,
@@ -398,6 +499,7 @@ function savePrinter() {
         location,
         connection,
         users,
+        image,
         date: new Date().toLocaleDateString()
     };
     
@@ -409,8 +511,168 @@ function savePrinter() {
         showAlert('Impressora adicionada com sucesso!', 'success');
     }
     
-    renderPrintersTable();
-    clearPrinterForm();
+    renderEquipmentGrid();
+    cancelEquipmentForm();
+}
+
+// Função para renderizar os equipamentos em formato de grid
+function renderEquipmentGrid() {
+    const grid = document.getElementById('equipment-grid');
+    grid.innerHTML = '';
+
+    // Combinar notebooks e impressoras
+    const allEquipment = [
+        ...notebooks.map(item => ({ ...item, type: 'notebook' })),
+        ...printers.map(item => ({ ...item, type: 'printer' }))
+    ];
+
+    // Ordenar por data (mais recente primeiro)
+    allEquipment.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (allEquipment.length === 0) {
+        grid.innerHTML = `
+            <div class="no-equipment" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                <i class="fas fa-laptop" style="font-size: 3rem; color: var(--gray-light); margin-bottom: 15px;"></i>
+                <h3 style="color: var(--gray-dark);">Nenhum equipamento cadastrado</h3>
+                <p>Clique em "Adicionar Equipamento" para começar</p>
+            </div>
+        `;
+        return;
+    }
+
+    allEquipment.forEach((equip, index) => {
+        const card = document.createElement('div');
+        card.className = 'equipment-card';
+        card.innerHTML = `
+            <div class="equipment-image" style="position: relative;">
+                ${equip.image ? 
+                    `<img src="${equip.image}" alt="${equip.type === 'notebook' ? equip.brand : equip.name}" style="width: 100%; height: 180px; object-fit: cover;">` : 
+                    `<i class="fas ${equip.type === 'notebook' ? 'fa-laptop' : 'fa-print'}" style="font-size: 3rem; color: var(--gray-dark);"></i>`
+                }
+                <span class="equipment-type">${equip.type === 'notebook' ? 'Notebook' : 'Impressora'}</span>
+            </div>
+            <div class="equipment-info">
+                <div class="equipment-name">${equip.type === 'notebook' ? equip.brand : equip.name}</div>
+                <div class="equipment-user"><i class="fas fa-user"></i> ${equip.user || equip.location || 'Sem responsável'}</div>
+                <div class="equipment-date"><i class="far fa-calendar-alt"></i> ${equip.date}</div>
+                <div class="equipment-actions">
+                    <button class="btn-view-equipment" data-index="${equip.type === 'notebook' ? notebooks.indexOf(equip) : printers.indexOf(equip)}" data-type="${equip.type}">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                    <button class="btn-edit-equipment" data-index="${equip.type === 'notebook' ? notebooks.indexOf(equip) : printers.indexOf(equip)}" data-type="${equip.type}">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// Funções para visualização de notebooks
+function viewNotebookDetails(index) {
+    currentNotebookIndex = index;
+    const notebook = notebooks[index];
+    
+    document.getElementById('modal-notebook-user').textContent = notebook.user || 'Não informado';
+    document.getElementById('modal-notebook-brand').textContent = notebook.brand || 'Não informado';
+    document.getElementById('modal-notebook-serial').textContent = notebook.serial || 'Não informado';
+    document.getElementById('modal-notebook-os').textContent = notebook.os || 'Não informado';
+    document.getElementById('modal-notebook-connections').textContent = notebook.connections || 'Não informado';
+    document.getElementById('modal-notebook-date').textContent = notebook.date || 'Data não registrada';
+    
+    const notebookImage = document.getElementById('modal-notebook-image');
+    if (notebook.image) {
+        notebookImage.src = notebook.image;
+        notebookImage.style.display = 'block';
+    } else {
+        notebookImage.style.display = 'none';
+    }
+    
+    loadNotebookNotes();
+    document.getElementById('notebook-modal').style.display = 'flex';
+}
+
+function loadNotebookNotes() {
+    const notesContainer = document.getElementById('modal-notebook-notes');
+    notesContainer.innerHTML = '';
+    
+    const notebook = notebooks[currentNotebookIndex];
+    
+    if (!notebook.notes || notebook.notes.length === 0) {
+        notesContainer.innerHTML = '<p class="no-notes">Nenhum atendimento registrado ainda.</p>';
+        return;
+    }
+    
+    const sortedNotes = [...notebook.notes].sort((a, b) => {
+        if (typeof a === 'string' || typeof b === 'string') return 0;
+        return new Date(b.date) - new Date(a.date);
+    });
+    
+    sortedNotes.forEach(note => {
+        const noteElement = document.createElement('div');
+        noteElement.className = 'note-item';
+        
+        if (typeof note === 'string') {
+            noteElement.innerHTML = `
+                <div class="note-content">${note}</div>
+                <div class="note-date">
+                    <i class="fas fa-clock"></i>
+                    Data não registrada
+                </div>
+            `;
+        } else {
+            noteElement.innerHTML = `
+                <div class="note-content">${note.text}</div>
+                <div class="note-date">
+                    <i class="fas fa-clock"></i>
+                    ${note.date}
+                </div>
+            `;
+        }
+        
+        notesContainer.appendChild(noteElement);
+    });
+}
+
+function toggleNoteField() {
+    const container = document.getElementById('new-note-container');
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    
+    if (container.style.display === 'block') {
+        document.getElementById('new-note-text').focus();
+    }
+}
+
+function saveNote() {
+    const noteText = document.getElementById('new-note-text').value.trim();
+    if (!noteText) {
+        showAlert('Por favor, descreva o atendimento antes de salvar', 'warning');
+        return;
+    }
+    
+    const newNote = {
+        text: noteText,
+        date: new Date().toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    };
+    
+    if (!notebooks[currentNotebookIndex].notes) {
+        notebooks[currentNotebookIndex].notes = [];
+    }
+    
+    notebooks[currentNotebookIndex].notes.push(newNote);
+    
+    document.getElementById('new-note-text').value = '';
+    document.getElementById('new-note-container').style.display = 'none';
+    
+    loadNotebookNotes();
+    showAlert('Atendimento registrado com sucesso!', 'success');
 }
 
 // Funções auxiliares
@@ -424,7 +686,7 @@ function readFileAsArrayBuffer(file) {
 }
 
 function updateUI() {
-    document.getElementById('save-btn').enabled = !workbook || !companyDataSaved;
+    document.getElementById('save-btn').disabled = !workbook && !companyDataSaved;
 }
 
 function showAlert(message, type = 'info') {
@@ -449,6 +711,7 @@ function showAlert(message, type = 'info') {
 
 // Funções para renderizar tabelas
 function renderCredentialsTable() {
+    const credentialsList = document.getElementById('credentials-list');
     credentialsList.innerHTML = '';
     credentials.forEach((cred, index) => {
         const row = document.createElement('tr');
@@ -469,44 +732,6 @@ function renderCredentialsTable() {
     });
 }
 
-function renderNotebooksTable() {
-    notebooksList.innerHTML = '';
-    notebooks.forEach((note, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${note.user}</td>
-            <td>${note.brand}</td>
-            <td>${note.serial}</td>
-            <td>${note.os}</td>
-            <td>${note.connections}</td>
-            <td>
-                <button class="btn-edit" data-index="${index}" data-type="notebook">✏️</button>
-                <button class="btn-delete" data-index="${index}" data-type="notebook">🗑️</button>
-            </td>
-        `;
-        notebooksList.appendChild(row);
-    });
-}
-
-function renderPrintersTable() {
-    printersList.innerHTML = '';
-    printers.forEach((printer, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${printer.name}</td>
-            <td>${printer.serial}</td>
-            <td>${printer.location}</td>
-            <td>${printer.connection}</td>
-            <td>${printer.users}</td>
-            <td>
-                <button class="btn-edit" data-index="${index}" data-type="printer">✏️</button>
-                <button class="btn-delete" data-index="${index}" data-type="printer">🗑️</button>
-            </td>
-        `;
-        printersList.appendChild(row);
-    });
-}
-
 // Funções para formulários
 function clearCredentialForm() {
     document.getElementById('service-input').value = '';
@@ -524,6 +749,9 @@ function clearNotebookForm() {
     document.getElementById('notebook-brand').value = '';
     document.getElementById('notebook-serial').value = '';
     document.getElementById('notebook-os').value = '';
+    document.getElementById('notebook-notes').value = '';
+    document.getElementById('notebook-image').value = '';
+    document.getElementById('notebook-preview').style.display = 'none';
     document.querySelectorAll('input[name="notebook-connection"]').forEach(cb => cb.checked = false);
     isEditingIndex = null;
     editingType = null;
@@ -534,6 +762,8 @@ function clearPrinterForm() {
     document.getElementById('printer-serial').value = '';
     document.getElementById('printer-ip').value = '';
     document.getElementById('printer-location').value = '';
+    document.getElementById('printer-image').value = '';
+    document.getElementById('printer-preview').style.display = 'none';
     document.querySelector('input[name="printer-connection"][value="Wi-Fi"]').checked = true;
     document.getElementById('printer-users-input').value = '';
     selectedUsers = [];
@@ -544,17 +774,46 @@ function clearPrinterForm() {
 
 // Funções para manipulação de dados
 function handleTableActions(e) {
-    if (e.target.classList.contains('btn-view')) {
-        const index = e.target.getAttribute('data-index');
-        const type = e.target.getAttribute('data-type');
+    if (e.target.classList.contains('btn-view') || e.target.closest('.btn-view')) {
+        const btn = e.target.classList.contains('btn-view') ? e.target : e.target.closest('.btn-view');
+        const index = btn.getAttribute('data-index');
+        const type = btn.getAttribute('data-type');
         viewItem(index, type);
-    } else if (e.target.classList.contains('btn-edit')) {
-        const index = e.target.getAttribute('data-index');
-        const type = e.target.getAttribute('data-type');
+    } else if (e.target.classList.contains('btn-view-equipment') || e.target.closest('.btn-view-equipment')) {
+        const btn = e.target.classList.contains('btn-view-equipment') ? e.target : e.target.closest('.btn-view-equipment');
+        const index = btn.getAttribute('data-index');
+        const type = btn.getAttribute('data-type');
+        
+        if (type === 'notebook') {
+            viewNotebookDetails(index);
+        } else {
+            const printer = printers[index];
+            alert(`Impressora: ${printer.name}\nLocal: ${printer.location}\nConexão: ${printer.connection}`);
+        }
+    } else if (e.target.classList.contains('btn-edit-equipment') || e.target.closest('.btn-edit-equipment')) {
+        const btn = e.target.classList.contains('btn-edit-equipment') ? e.target : e.target.closest('.btn-edit-equipment');
+        const index = btn.getAttribute('data-index');
+        const type = btn.getAttribute('data-type');
+        
+        document.getElementById('equipment-form-container').style.display = 'block';
+        document.getElementById('add-equipment-btn').style.display = 'none';
+        
+        if (type === 'notebook') {
+            document.querySelector('.subtab-btn[data-subtab="notebooks"]').click();
+            editItem(index, 'notebook');
+        } else {
+            document.querySelector('.subtab-btn[data-subtab="printers"]').click();
+            editItem(index, 'printer');
+        }
+    } else if (e.target.classList.contains('btn-edit') || e.target.closest('.btn-edit')) {
+        const btn = e.target.classList.contains('btn-edit') ? e.target : e.target.closest('.btn-edit');
+        const index = btn.getAttribute('data-index');
+        const type = btn.getAttribute('data-type');
         editItem(index, type);
-    } else if (e.target.classList.contains('btn-delete')) {
-        const index = e.target.getAttribute('data-index');
-        const type = e.target.getAttribute('data-type');
+    } else if (e.target.classList.contains('btn-delete') || e.target.closest('.btn-delete')) {
+        const btn = e.target.classList.contains('btn-delete') ? e.target : e.target.closest('.btn-delete');
+        const index = btn.getAttribute('data-index');
+        const type = btn.getAttribute('data-type');
         deleteItem(index, type);
     }
 }
@@ -579,7 +838,6 @@ function editItem(index, type) {
         document.getElementById('mfa-checkbox').checked = cred.mfa;
         document.getElementById('notes-input').value = cred.notes;
         
-        // Ir para a aba de credenciais
         document.querySelector('.tab-btn[data-tab="credentials"]').click();
     } else if (type === 'notebook') {
         const note = notebooks[index];
@@ -588,13 +846,23 @@ function editItem(index, type) {
         document.getElementById('notebook-serial').value = note.serial;
         document.getElementById('notebook-os').value = note.os;
         
-        // Limpar seleções anteriores
+        const initialNote = note.notes && note.notes.length > 0 ? 
+            (typeof note.notes[0] === 'string' ? note.notes[0] : note.notes[0].text) : 
+            '';
+        document.getElementById('notebook-notes').value = initialNote;
+        
+        if (note.image) {
+            document.getElementById('notebook-preview').src = note.image;
+            document.getElementById('notebook-preview').style.display = 'block';
+        }
+        
         document.querySelectorAll('input[name="notebook-connection"]').forEach(cb => {
             cb.checked = note.connections.includes(cb.value);
         });
         
-        // Ir para a aba de notebooks
         document.querySelector('.tab-btn[data-tab="equipment"]').click();
+        document.getElementById('equipment-form-container').style.display = 'block';
+        document.getElementById('add-equipment-btn').style.display = 'none';
         document.querySelector('.subtab-btn[data-subtab="notebooks"]').click();
     } else if (type === 'printer') {
         const printer = printers[index];
@@ -603,15 +871,19 @@ function editItem(index, type) {
         document.getElementById('printer-ip').value = printer.ip;
         document.getElementById('printer-location').value = printer.location;
         
-        // Selecionar o tipo de conexão correto
+        if (printer.image) {
+            document.getElementById('printer-preview').src = printer.image;
+            document.getElementById('printer-preview').style.display = 'block';
+        }
+        
         document.querySelector(`input[name="printer-connection"][value="${printer.connection}"]`).checked = true;
         
-        // Configurar usuários
         selectedUsers = printer.users.split(',').map(u => u.trim()).filter(u => u);
         updateUserTags();
         
-        // Ir para a aba de impressoras
         document.querySelector('.tab-btn[data-tab="equipment"]').click();
+        document.getElementById('equipment-form-container').style.display = 'block';
+        document.getElementById('add-equipment-btn').style.display = 'none';
         document.querySelector('.subtab-btn[data-subtab="printers"]').click();
     }
 }
@@ -624,10 +896,10 @@ function deleteItem(index, type) {
         renderCredentialsTable();
     } else if (type === 'notebook') {
         notebooks.splice(index, 1);
-        renderNotebooksTable();
+        renderEquipmentGrid();
     } else if (type === 'printer') {
         printers.splice(index, 1);
-        renderPrintersTable();
+        renderEquipmentGrid();
     }
     
     showAlert('Item excluído com sucesso!', 'success');
@@ -704,7 +976,6 @@ function handleUserKeyDown(e) {
 }
 
 function showUserSuggestions() {
-    // Implementação básica - pode ser expandida com dados reais
     userSuggestions.innerHTML = `
         <div class="suggestion" data-user="admin">admin</div>
         <div class="suggestion" data-user="ti">ti</div>
@@ -826,18 +1097,15 @@ function updatePasswordStrength(password, isGenerated = false) {
         return;
     }
     
-    // Critérios de força
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
     if (/[A-Z]/.test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^A-Za-z0-9]/.test(password)) strength++;
     
-    // Atualizar barra de força
     const width = strength * 20;
     strengthBar.style.width = `${width}%`;
     
-    // Atualizar cor
     let colorClass;
     if (strength <= 1) colorClass = 'weak';
     else if (strength <= 3) colorClass = 'medium';
@@ -845,7 +1113,6 @@ function updatePasswordStrength(password, isGenerated = false) {
     
     strengthBar.className = `strength-bar ${colorClass}`;
     
-    // Feedback para senha gerada
     if (isGenerated) {
         let feedback = '';
         if (strength <= 1) feedback = 'Senha fraca';
@@ -861,7 +1128,6 @@ function loadSheetData(sheetName, dataType) {
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
     
-    // Remover cabeçalho
     data.shift();
     
     if (dataType === 'credentials') {
@@ -876,15 +1142,34 @@ function loadSheetData(sheetName, dataType) {
         }));
         renderCredentialsTable();
     } else if (dataType === 'notebooks') {
-        notebooks = data.map(row => ({
-            user: row[0] || '',
-            brand: row[1] || '',
-            serial: row[2] || '',
-            os: row[3] || '',
-            connections: row[4] || '',
-            date: row[5] || new Date().toLocaleDateString()
-        }));
-        renderNotebooksTable();
+        notebooks = data.map(row => {
+            let notes = [];
+            if (row[5]) {
+                if (row[5].includes('\n\n')) {
+                    const noteTexts = row[5].split('\n\n');
+                    notes = noteTexts.map(text => ({
+                        text: text,
+                        date: 'Data não registrada'
+                    }));
+                } else {
+                    notes = [{
+                        text: row[5],
+                        date: 'Data não registrada'
+                    }];
+                }
+            }
+            
+            return {
+                user: row[0] || '',
+                brand: row[1] || '',
+                serial: row[2] || '',
+                os: row[3] || '',
+                connections: row[4] || '',
+                notes: notes,
+                image: null,
+                date: row[7] || new Date().toLocaleDateString()
+            };
+        });
     } else if (dataType === 'printers') {
         printers = data.map(row => ({
             name: row[0] || '',
@@ -893,8 +1178,9 @@ function loadSheetData(sheetName, dataType) {
             location: row[3] || '',
             connection: row[4] || '',
             users: row[5] || '',
-            date: row[6] || new Date().toLocaleDateString()
+            image: null,
+            date: row[7] || new Date().toLocaleDateString()
         }));
-        renderPrintersTable();
     }
+    renderEquipmentGrid();
 }
