@@ -55,6 +55,12 @@
                         <label for="company-contact"><i class="fas fa-phone"></i> Contato Principal</label>
                         <input type="text" id="company-contact" class="form-input" placeholder="Telefone/Email">
                     </div>
+                    
+                    <div class="form-actions">
+                        <button id="save-company-btn" class="btn success">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -171,7 +177,8 @@
                             <div class="connection-options">
                                 <label><input type="checkbox" name="notebook-connection" value="Wi-Fi"> Wi-Fi</label>
                                 <label><input type="checkbox" name="notebook-connection" value="Ethernet"> Cabo Ethernet</label>
-                        </div>
+                                <label><input type="checkbox" name="notebook-connection" value="Dock"> Dock Station</label>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <button id="save-notebook" class="btn success">
@@ -234,7 +241,7 @@
                         <div class="form-group">
                             <label for="printer-users"><i class="fas fa-users"></i> Usuários com Acesso</label>
                             <div class="tags-input-container">
-                                <div class="tags-input" id="printer-users-tags">
+                                <div class="tags-container" id="printer-users-tags">
                                     <!-- Tags serão adicionadas aqui -->
                                 </div>
                                 <input type="text" id="printer-users-input" class="form-input tags-input-field" 
