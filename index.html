@@ -141,139 +141,135 @@
 
             <!-- Aba Equipamentos -->
             <div id="equipment-tab" class="tab-content">
-                <div class="equipment-tabs">
-                    <button class="subtab-btn active" data-subtab="notebooks">Notebooks</button>
-                    <button class="subtab-btn" data-subtab="printers">Impressoras</button>
+                <div class="equipment-header">
+                    <h2><i class="fas fa-laptop"></i> Equipamentos</h2>
+                    <button id="add-equipment-btn" class="btn primary">
+                        <i class="fas fa-plus"></i> Adicionar Equipamento
+                    </button>
                 </div>
 
-                <!-- Sub-aba Notebooks -->
-                <div id="notebooks-subtab" class="subtab-content active">
-                    <div class="notebook-form">
-                        <h3><i class="fas fa-laptop"></i> Adicionar Notebook</h3>
-                        <div class="form-group">
-                            <label for="notebook-user"><i class="fas fa-user"></i> Usuário Responsável*</label>
-                            <input type="text" id="notebook-user" class="form-input" placeholder="Nome do responsável" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="notebook-brand"><i class="fas fa-laptop-code"></i> Marca/Modelo*</label>
-                            <input type="text" id="notebook-brand" class="form-input" placeholder="Ex: Dell Latitude 5420" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="notebook-serial"><i class="fas fa-barcode"></i> Número de Série</label>
-                            <input type="text" id="notebook-serial" class="form-input" placeholder="Número de série">
-                        </div>
-                        <div class="form-group">
-                            <label for="notebook-os"><i class="fas fa-window-maximize"></i> Sistema Operacional*</label>
-                            <select id="notebook-os" class="form-input" required>
-                                <option value="">Selecione...</option>
-                                <option value="Windows 10">Windows 10</option>
-                                <option value="Windows 11">Windows 11</option>
-                                <option value="macOS">macOS</option>
-                                <option value="Linux">Linux</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-network-wired"></i> Tipo de Conexão*</label>
-                            <div class="connection-options">
-                                <label><input type="checkbox" name="notebook-connection" value="Wi-Fi"> Wi-Fi</label>
-                                <label><input type="checkbox" name="notebook-connection" value="Ethernet"> Cabo Ethernet</label>
-                                <label><input type="checkbox" name="notebook-connection" value="Dock"> Dock Station</label>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button id="save-notebook" class="btn success">
-                                <i class="fas fa-check"></i> Salvar Notebook
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="notebooks-table-container">
-                        <h3><i class="fas fa-list"></i> Notebooks Cadastrados</h3>
-                        <div class="table-scroll">
-                            <table id="notebooks-table">
-                                <thead>
-                                    <tr>
-                                        <th>Usuário</th>
-                                        <th>Marca/Modelo</th>
-                                        <th>Série</th>
-                                        <th>Sistema</th>
-                                        <th>Conexões</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="notebooks-list">
-                                    <!-- Notebooks serão inseridos aqui via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="equipment-grid" id="equipment-grid">
+                    <!-- Os equipamentos serão renderizados aqui -->
                 </div>
 
-                <!-- Sub-aba Impressoras -->
-                <div id="printers-subtab" class="subtab-content">
-                    <div class="printer-form">
-                        <h3><i class="fas fa-print"></i> Adicionar Impressora</h3>
-                        <div class="form-group">
-                            <label for="printer-name"><i class="fas fa-signature"></i> Nome/Modelo*</label>
-                            <input type="text" id="printer-name" class="form-input" placeholder="Ex: HP LaserJet Pro M404" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="printer-serial"><i class="fas fa-barcode"></i> Número de Série</label>
-                            <input type="text" id="printer-serial" class="form-input" placeholder="Número de série">
-                        </div>
-                        <div class="form-group">
-                            <label for="printer-ip"><i class="fas fa-network-wired"></i> IP/MAC</label>
-                            <input type="text" id="printer-ip" class="form-input" placeholder="Endereço IP ou MAC">
-                        </div>
-                        <div class="form-group">
-                            <label for="printer-location"><i class="fas fa-map-marker-alt"></i> Setor/Localização*</label>
-                            <input type="text" id="printer-location" class="form-input" placeholder="Ex: Financeiro - Sala 12" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-wifi"></i> Tipo de Conexão*</label>
-                            <div class="connection-options">
-                                <label><input type="radio" name="printer-connection" value="Wi-Fi" checked> Wi-Fi</label>
-                                <label><input type="radio" name="printer-connection" value="Wi-Fi Direct"> Wi-Fi Direct</label>
-                                <label><input type="radio" name="printer-connection" value="Ethernet"> Cabo Ethernet</label>
-                                <label><input type="radio" name="printer-connection" value="USB"> USB</label>
+                <!-- Formulário (inicialmente oculto) -->
+                <div id="equipment-form-container" style="display: none;">
+                    <div class="equipment-tabs">
+                        <button class="subtab-btn active" data-subtab="notebooks">Notebook</button>
+                        <button class="subtab-btn" data-subtab="printers">Impressora</button>
+                    </div>
+
+                    <!-- Sub-aba Notebook -->
+                    <div id="notebooks-subtab" class="subtab-content active">
+                        <div class="notebook-form">
+                            <h3><i class="fas fa-laptop"></i> Adicionar Notebook</h3>
+                            <div class="form-group">
+                                <label for="notebook-user"><i class="fas fa-user"></i> Usuário Responsável*</label>
+                                <input type="text" id="notebook-user" class="form-input" placeholder="Nome do responsável" required>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="printer-users"><i class="fas fa-users"></i> Usuários com Acesso</label>
-                            <div class="tags-input-container">
-                                <div class="tags-container" id="printer-users-tags">
-                                    <!-- Tags serão adicionadas aqui -->
+                            <div class="form-group">
+                                <label for="notebook-brand"><i class="fas fa-laptop-code"></i> Marca/Modelo*</label>
+                                <input type="text" id="notebook-brand" class="form-input" placeholder="Ex: Dell Latitude 5420" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="notebook-serial"><i class="fas fa-barcode"></i> Número de Série</label>
+                                <input type="text" id="notebook-serial" class="form-input" placeholder="Número de série">
+                            </div>
+                            <div class="form-group">
+                                <label for="notebook-os"><i class="fas fa-window-maximize"></i> Sistema Operacional*</label>
+                                <select id="notebook-os" class="form-input" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Windows 10">Windows 10</option>
+                                    <option value="Windows 11">Windows 11</option>
+                                    <option value="macOS">macOS</option>
+                                    <option value="Linux">Linux</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-network-wired"></i> Tipo de Conexão*</label>
+                                <div class="connection-options">
+                                    <label><input type="checkbox" name="notebook-connection" value="Wi-Fi"> Wi-Fi</label>
+                                    <label><input type="checkbox" name="notebook-connection" value="Ethernet"> Cabo Ethernet</label>
+                                    <label><input type="checkbox" name="notebook-connection" value="Dock"> Dock Station</label>
                                 </div>
-                                <input type="text" id="printer-users-input" class="form-input tags-input-field" 
-                                       placeholder="Digite o nome do usuário ou selecione abaixo">
-                                <div class="user-suggestions" id="user-suggestions"></div>
                             </div>
-                        </div>
-                        <div class="form-actions">
-                            <button id="save-printer" class="btn success">
-                                <i class="fas fa-check"></i> Salvar Impressora
-                            </button>
+                            <div class="form-group">
+                                <label for="notebook-image"><i class="fas fa-camera"></i> Foto do Notebook</label>
+                                <div class="image-preview-container">
+                                    <img id="notebook-preview" src="#" alt="Foto do Notebook" style="display: none; max-width: 200px; max-height: 150px; margin-bottom: 10px;">
+                                </div>
+                                <input type="file" id="notebook-image" class="form-input" accept="image/*" capture="camera">
+                            </div>
+                            <div class="form-group">
+                                <label for="notebook-notes"><i class="fas fa-sticky-note"></i> Notas Iniciais</label>
+                                <textarea id="notebook-notes" class="form-input" rows="3" placeholder="Adicione informações relevantes"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button id="save-notebook" class="btn success">
+                                    <i class="fas fa-check"></i> Salvar Notebook
+                                </button>
+                                <button id="cancel-notebook" class="btn secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="printers-table-container">
-                        <h3><i class="fas fa-list"></i> Impressoras Cadastradas</h3>
-                        <div class="table-scroll">
-                            <table id="printers-table">
-                                <thead>
-                                    <tr>
-                                        <th>Modelo</th>
-                                        <th>Série</th>
-                                        <th>Localização</th>
-                                        <th>Conexão</th>
-                                        <th>Usuários</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="printers-list">
-                                    <!-- Impressoras serão inseridas aqui via JavaScript -->
-                                </tbody>
-                            </table>
+                    <!-- Sub-aba Impressoras -->
+                    <div id="printers-subtab" class="subtab-content">
+                        <div class="printer-form">
+                            <h3><i class="fas fa-print"></i> Adicionar Impressora</h3>
+                            <div class="form-group">
+                                <label for="printer-name"><i class="fas fa-signature"></i> Nome/Modelo*</label>
+                                <input type="text" id="printer-name" class="form-input" placeholder="Ex: HP LaserJet Pro M404" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="printer-serial"><i class="fas fa-barcode"></i> Número de Série</label>
+                                <input type="text" id="printer-serial" class="form-input" placeholder="Número de série">
+                            </div>
+                            <div class="form-group">
+                                <label for="printer-ip"><i class="fas fa-network-wired"></i> IP/MAC</label>
+                                <input type="text" id="printer-ip" class="form-input" placeholder="Endereço IP ou MAC">
+                            </div>
+                            <div class="form-group">
+                                <label for="printer-location"><i class="fas fa-map-marker-alt"></i> Setor/Localização*</label>
+                                <input type="text" id="printer-location" class="form-input" placeholder="Ex: Financeiro - Sala 12" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-wifi"></i> Tipo de Conexão*</label>
+                                <div class="connection-options">
+                                    <label><input type="radio" name="printer-connection" value="Wi-Fi" checked> Wi-Fi</label>
+                                    <label><input type="radio" name="printer-connection" value="Wi-Fi Direct"> Wi-Fi Direct</label>
+                                    <label><input type="radio" name="printer-connection" value="Ethernet"> Cabo Ethernet</label>
+                                    <label><input type="radio" name="printer-connection" value="USB"> USB</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="printer-image"><i class="fas fa-camera"></i> Foto da Impressora</label>
+                                <div class="image-preview-container">
+                                    <img id="printer-preview" src="#" alt="Foto da Impressora" style="display: none; max-width: 200px; max-height: 150px; margin-bottom: 10px;">
+                                </div>
+                                <input type="file" id="printer-image" class="form-input" accept="image/*" capture="camera">
+                            </div>
+                            <div class="form-group">
+                                <label for="printer-users"><i class="fas fa-users"></i> Usuários com Acesso</label>
+                                <div class="tags-input-container">
+                                    <div class="tags-container" id="printer-users-tags">
+                                        <!-- Tags serão adicionadas aqui -->
+                                    </div>
+                                    <input type="text" id="printer-users-input" class="form-input tags-input-field" 
+                                           placeholder="Digite o nome do usuário ou selecione abaixo">
+                                    <div class="user-suggestions" id="user-suggestions"></div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button id="save-printer" class="btn success">
+                                    <i class="fas fa-check"></i> Salvar Impressora
+                                </button>
+                                <button id="cancel-printer" class="btn secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -326,6 +322,78 @@
                     </button>
                     <button id="regenerate-password" class="btn secondary">
                         <i class="fas fa-sync-alt"></i> Gerar outra
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Visualização de Notebook -->
+        <div class="modal" id="notebook-modal">
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-laptop"></i> Detalhes do Notebook</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="notebook-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Usuário:</span>
+                            <span id="modal-notebook-user" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Marca/Modelo:</span>
+                            <span id="modal-notebook-brand" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Número Série:</span>
+                            <span id="modal-notebook-serial" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Sistema Operacional:</span>
+                            <span id="modal-notebook-os" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Conexões:</span>
+                            <span id="modal-notebook-connections" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Data de Cadastro:</span>
+                            <span id="modal-notebook-date" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row full-width">
+                            <span class="detail-label">Foto do Equipamento:</span>
+                            <div id="modal-notebook-image-container" class="image-container">
+                                <img id="modal-notebook-image" src="#" alt="Foto do Notebook" style="display: none; max-width: 100%; max-height: 300px;">
+                            </div>
+                        </div>
+                        <div class="detail-row full-width">
+                            <span class="detail-label">Histórico de Atendimentos:</span>
+                            <div id="modal-notebook-notes" class="notes-container">
+                                <!-- As notas serão adicionadas aqui dinamicamente -->
+                            </div>
+                            <button id="add-note-btn" class="btn primary small">
+                                <i class="fas fa-plus"></i> Adicionar Atendimento
+                            </button>
+                            
+                            <!-- Campo de texto para nova nota (inicialmente oculto) -->
+                            <div id="new-note-container" style="display: none; margin-top: 15px;">
+                                <textarea id="new-note-text" class="form-input" rows="4" 
+                                          placeholder="Descreva o atendimento realizado..."></textarea>
+                                <div class="form-actions" style="margin-top: 10px;">
+                                    <button id="save-note-btn" class="btn success small">
+                                        <i class="fas fa-save"></i> Salvar Atendimento
+                                    </button>
+                                    <button id="cancel-note-btn" class="btn secondary small">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="close-notebook-modal" class="btn secondary">
+                        <i class="fas fa-times"></i> Fechar
                     </button>
                 </div>
             </div>
